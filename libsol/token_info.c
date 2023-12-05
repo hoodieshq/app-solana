@@ -545,15 +545,14 @@ const struct token_info token_infos[] = {
     {{{0xfb, 0xff, 0xbe, 0x51, 0xe1, 0x73, 0x11, 0x60, 0xaa, 0x8e, 0xb9,
        0x1c, 0xbf, 0xe3, 0x1d, 0x8d, 0x67, 0xbd, 0x25, 0xcf, 0xc2, 0xee,
        0x12, 0x01, 0x97, 0x8e, 0x5c, 0x1a, 0xb3, 0x22, 0xfc, 0xcc}},
-     "HXRO"}
-};
+     "HXRO"}};
 
 const char* get_token_symbol(const Pubkey* mint_address) {
     for (size_t i = 0; i < ARRAY_LEN(token_infos); i++) {
-      const struct token_info* ti = &token_infos[i];
-      if (memcmp(&(ti->mint_address), mint_address, PUBKEY_SIZE) == 0) {
-              return ti->symbol;
-      }
+        const struct token_info* ti = &token_infos[i];
+        if (memcmp(&(ti->mint_address), mint_address, PUBKEY_SIZE) == 0) {
+            return ti->symbol;
+        }
     }
     return "???";
 }
