@@ -1,12 +1,7 @@
 #include "token_info.h"
 #include "util.h"
 
-struct token_info {
-    const Pubkey mint_address;
-    const char* symbol;
-};
-
-const struct token_info token_infos[] = {
+const TokenInfo TOKEN_REGISTRY[] = {
     // So11111111111111111111111111111111111111112
     {{{0x06, 0x9b, 0x88, 0x57, 0xfe, 0xab, 0x81, 0x84, 0xfb, 0x68, 0x7f,
        0x63, 0x46, 0x18, 0xc0, 0x35, 0xda, 0xc4, 0x39, 0xdc, 0x1a, 0xeb,
@@ -548,10 +543,11 @@ const struct token_info token_infos[] = {
      "HXRO"}};
 
 const char* get_token_symbol(const Pubkey* mint_address) {
-    for (size_t i = 0; i < ARRAY_LEN(token_infos); i++) {
-        const struct token_info* ti = &token_infos[i];
-        if (memcmp(&(ti->mint_address), mint_address, PUBKEY_SIZE) == 0) {
-            return ti->symbol;
+    for (size_t i = 0; i < ARRAY_LEN(TOKEN_REGISTRY); i++) {
+        const TokenInfo* info = &TOKEN_REGISTRY[i];
+
+        if (memcmp(&(info->mint_address), mint_address, PUBKEY_SIZE) == 0) {
+            return info->symbol;
         }
     }
     return "???";
