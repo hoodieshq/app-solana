@@ -70,6 +70,22 @@ Run C tests:
 bash$ make -C libsol
 ```
 
+### Ragger
+
+Make sure that you have already built the application for the specific device.
+
+Run Ragger tests:
+
+```sh
+# Install python test suite dependencies
+bash$ pip install -r "tests/python/requirements.txt"
+
+# Run test suite for the specific device, e.g. nanos
+bash$ pytest tests/python/ --tb=short -v --device nanos -k ""
+```
+
+To regenerate golden snapshots, use `--golden_run` option.
+
 ### Integration
 
 First enable `blind-signing` in the App settings
