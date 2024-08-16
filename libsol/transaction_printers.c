@@ -512,13 +512,13 @@ static int print_spl_token_create_account(const PrintConfig* print_config,
     const SplTokenInitializeAccountInfo* ia_info = &infos[1]->spl_token.initialize_account;
 
     SummaryItem* item = transaction_summary_primary_item();
-    summary_item_set_pubkey(item, "Create token acct", ia_info->token_account);
+    summary_item_set_pubkey(item, "Create token account", ia_info->token_account);
 
     item = transaction_summary_general_item();
-    summary_item_set_pubkey(item, "From mint", ia_info->mint_account);
+    summary_item_set_pubkey(item, "For", ia_info->owner);
 
     item = transaction_summary_general_item();
-    summary_item_set_pubkey(item, "Owned by", ia_info->owner);
+    summary_item_set_pubkey(item, "Token address", ia_info->mint_account);
 
     if (print_config_show_authority(print_config, ca_info->from)) {
         item = transaction_summary_general_item();
