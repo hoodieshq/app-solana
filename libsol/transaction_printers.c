@@ -669,6 +669,40 @@ static int print_transaction_nonce_processed(const PrintConfig* print_config,
     return 1;
 }
 
+InstructionInfo* const* preprocess_compute_budget_instructions(const PrintConfig* print_config,
+                                                               InstructionInfo* const* infos,
+                                                               size_t* infos_length) {
+    size_t infos_length_initial = *infos_length;
+    if (infos_length_initial > 1) {
+        // Iterate over infos and print compute budget instructions and offset pointers
+        // Handle ComputeBudget instructions first due to tech limitations of the
+        // print_transaction_nonce_processed. We can get one or 4 ComputeBudget instructions in a
+        // single transaction, so we are not able to handle it in a static switch case.
+        ComputeBudgetFeeInfo compute_budget_fee_info = {.change_unit_limit = NULL,
+                                                        .change_unit_price = NULL,
+                                                        .instructions_count = infos_length_initial};
+        for (size_t info_idx = 0; info_idx < infos_length_initial; ++info_idx) {
+            InstructionInfo* instruction_info = infos[0];
+            if (instruction_info->kind == ProgramIdComputeBudget) {
+                // Unit limit and unit price needs to be aggregated
+                // before displaying as this is needed for calculating max fee properly
+                if (instruction_info->compute_budget.kind == ComputeBudgetChangeUnitLimit) {
+                    compute_budget_fee_info.change_unit_limit =
+                        &instruction_info->compute_budget.change_unit_limit;
+                }
+                if (instruction_info->compute_budget.kind == ComputeBudgetChangeUnitPrice) {
+                    compute_budget_fee_info.change_unit_price =
+                        &instruction_info->compute_budget.change_unit_price;
+                }
+                infos++;
+                (*infos_length)--;
+            }
+        }
+        print_compute_budget(&compute_budget_fee_info, print_config);
+    }
+    return infos;
+}
+
 int print_transaction(const PrintConfig* print_config,
                       InstructionInfo* const* infos,
                       size_t infos_length) {
@@ -681,21 +715,7 @@ int print_transaction(const PrintConfig* print_config,
         infos_length--;
     }
 
-    if (infos_length > 1) {
-        // Iterate over infos and print compute budget instructions and offset pointers
-        // Handle ComputeBudget instructions first due to tech limitations of the
-        // print_transaction_nonce_processed. We can get one or 4 ComputeBudget instructions in a
-        // single transaction, so we are not able to handle it in a static switch case.
-        size_t infos_length_initial = infos_length;
-        for (size_t info_idx = 0; info_idx < infos_length_initial; ++info_idx) {
-            InstructionInfo* instruction_info = infos[0];
-            if (instruction_info->kind == ProgramIdComputeBudget) {
-                print_compute_budget(&instruction_info->compute_budget, print_config);
-                infos++;
-                infos_length--;
-            }
-        }
-    }
+    infos = preprocess_compute_budget_instructions(print_config, infos, &infos_length);
 
     return print_transaction_nonce_processed(print_config, infos, infos_length);
 }

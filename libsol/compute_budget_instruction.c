@@ -1,5 +1,6 @@
 #include "compute_budget_instruction.h"
 #include "sol/transaction_summary.h"
+#include "os_math.h"
 
 const Pubkey compute_budget_program_id = {{PROGRAM_ID_COMPUTE_BUDGET}};
 
@@ -46,41 +47,34 @@ static int parse_loaded_accounts_data_size_limit(
     return 0;
 }
 
-static int print_compute_budget_unit_price(ComputeBudgetChangeUnitPriceInfo* info,
-                                           const PrintConfig* print_config) {
-    UNUSED(print_config);
-
-    SummaryItem* item;
-
-    item = transaction_summary_general_item();
-    summary_item_set_u64(item, "Unit price", info->units);
-
-    return 0;
-}
-
-static int print_compute_budget_unit_limit(ComputeBudgetChangeUnitLimitInfo* info,
-                                           const PrintConfig* print_config) {
-    UNUSED(print_config);
-
-    SummaryItem* item;
-
-    item = transaction_summary_general_item();
-    summary_item_set_u64(item, "Unit limit", info->units);
-
-    return 0;
-}
-
-int print_compute_budget(ComputeBudgetInfo* info, const PrintConfig* print_config) {
-    switch (info->kind) {
-        case ComputeBudgetChangeUnitLimit:
-            return print_compute_budget_unit_limit(&info->change_unit_limit, print_config);
-        case ComputeBudgetChangeUnitPrice:
-            return print_compute_budget_unit_price(&info->change_unit_price, print_config);
-        case ComputeBudgetRequestHeapFrame:
-        case ComputeBudgetSetLoadedAccountsDataSizeLimit:
-            break;
+static uint32_t calculate_max_fee(ComputeBudgetFeeInfo* info) {
+    if (info->change_unit_price && info->change_unit_limit) {
+        return FEE_LAMPORTS_PER_SIGNATURE +
+               (info->change_unit_price->units * info->change_unit_limit->units);
     }
-    return 1;
+    return MIN(info->instructions_count * MAX_CU_PER_INSTRUCTION, MAX_CU_PER_TRANSACTION);
+}
+
+static int print_compute_budget_max_fee(uint32_t max_fee, const PrintConfig* print_config) {
+    UNUSED(print_config);
+
+    SummaryItem* item;
+
+    item = transaction_summary_general_item();
+    summary_item_set_u64(item, "Max fees", max_fee);
+
+    return 0;
+}
+
+/**
+ * Display transaction max fees
+ * RequestHeapFrame and SetLoadedAccountsDataSizeLimit instruction kinds
+ * are omitted on purpose as they currently do not display any data on the screen
+ */
+int print_compute_budget(ComputeBudgetFeeInfo* info, const PrintConfig* print_config) {
+    uint32_t transaction_max_fee = calculate_max_fee(info);
+
+    return print_compute_budget_max_fee(transaction_max_fee, print_config);
 }
 
 int parse_compute_budget_instructions(const Instruction* instruction, ComputeBudgetInfo* info) {
