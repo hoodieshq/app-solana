@@ -680,10 +680,13 @@ InstructionInfo* const* preprocess_compute_budget_instructions(const PrintConfig
         // single transaction, so we are not able to handle it in a static switch case.
         ComputeBudgetFeeInfo compute_budget_fee_info = {.change_unit_limit = NULL,
                                                         .change_unit_price = NULL,
-                                                        .instructions_count = infos_length_initial};
+                                                        .instructions_count = infos_length_initial,
+                                                        .signatures_count = 0};
         for (size_t info_idx = 0; info_idx < infos_length_initial; ++info_idx) {
             InstructionInfo* instruction_info = infos[0];
             if (instruction_info->kind == ProgramIdComputeBudget) {
+                compute_budget_fee_info.signatures_count =
+                    instruction_info->compute_budget.signatures_count;
                 // Unit limit and unit price needs to be aggregated
                 // before displaying as this is needed for calculating max fee properly
                 if (instruction_info->compute_budget.kind == ComputeBudgetChangeUnitLimit) {
@@ -698,7 +701,12 @@ InstructionInfo* const* preprocess_compute_budget_instructions(const PrintConfig
                 (*infos_length)--;
             }
         }
-        print_compute_budget(&compute_budget_fee_info, print_config);
+        if (compute_budget_fee_info.change_unit_limit ||
+            compute_budget_fee_info.change_unit_price) {
+            // We do not want to display anything related to the compute budget
+            // if no instructions of this type were present in the transaction
+            print_compute_budget(&compute_budget_fee_info, print_config);
+        }
     }
     return infos;
 }

@@ -1,6 +1,5 @@
 #include "compute_budget_instruction.h"
 #include "sol/transaction_summary.h"
-#include "os_math.h"
 
 const Pubkey compute_budget_program_id = {{PROGRAM_ID_COMPUTE_BUDGET}};
 
@@ -49,7 +48,7 @@ static int parse_loaded_accounts_data_size_limit(
 
 static uint32_t calculate_max_fee(ComputeBudgetFeeInfo* info) {
     if (info->change_unit_price && info->change_unit_limit) {
-        return FEE_LAMPORTS_PER_SIGNATURE +
+        return (FEE_LAMPORTS_PER_SIGNATURE * info->signatures_count) +
                (info->change_unit_price->units * info->change_unit_limit->units);
     }
     return MIN(info->instructions_count * MAX_CU_PER_INSTRUCTION, MAX_CU_PER_TRANSACTION);
@@ -77,10 +76,14 @@ int print_compute_budget(ComputeBudgetFeeInfo* info, const PrintConfig* print_co
     return print_compute_budget_max_fee(transaction_max_fee, print_config);
 }
 
-int parse_compute_budget_instructions(const Instruction* instruction, ComputeBudgetInfo* info) {
+int parse_compute_budget_instructions(const Instruction* instruction,
+                                      const MessageHeader* header,
+                                      ComputeBudgetInfo* info) {
     Parser parser = {instruction->data, instruction->data_length};
 
     BAIL_IF(parse_compute_budget_instruction_kind(&parser, &info->kind));
+
+    info->signatures_count = header->pubkeys_header.num_required_signatures;
 
     switch (info->kind) {
         case ComputeBudgetRequestHeapFrame:

@@ -37,6 +37,7 @@ typedef struct ComputeBudgetSetLoadedAccountsDataSizeLimitInfo {
 
 typedef struct ComputeBudgetInfo {
     enum ComputeBudgetInstructionKind kind;
+    size_t signatures_count;
     union {
         ComputeBudgetRequestHeapFrameInfo request_heap_frame;
         ComputeBudgetChangeUnitLimitInfo change_unit_limit;
@@ -49,8 +50,11 @@ typedef struct ComputeBudgetFeeInfo {
     ComputeBudgetChangeUnitLimitInfo* change_unit_limit;
     ComputeBudgetChangeUnitPriceInfo* change_unit_price;
     size_t instructions_count;
+    size_t signatures_count;
 } ComputeBudgetFeeInfo;
 
-int parse_compute_budget_instructions(const Instruction* instruction, ComputeBudgetInfo* info);
+int parse_compute_budget_instructions(const Instruction* instruction,
+                                      const MessageHeader* header,
+                                      ComputeBudgetInfo* info);
 
 int print_compute_budget(ComputeBudgetFeeInfo* info, const PrintConfig* print_config);
