@@ -46,12 +46,20 @@ static int parse_loaded_accounts_data_size_limit(
     return 0;
 }
 
-static uint32_t calculate_max_fee(ComputeBudgetFeeInfo* info) {
-    if (info->change_unit_price && info->change_unit_limit) {
-        return (FEE_LAMPORTS_PER_SIGNATURE * info->signatures_count) +
-               (info->change_unit_price->units * info->change_unit_limit->units);
+static uint32_t calculate_max_fee(const ComputeBudgetFeeInfo* info) {
+    uint32_t max_fee = FEE_LAMPORTS_PER_SIGNATURE * info->signatures_count;
+
+    if (info->change_unit_price != NULL) {
+        uint32_t max_compute = 0;
+        if (info->change_unit_limit != NULL) {
+            max_compute = info->change_unit_limit->units;
+        } else {
+            max_compute =
+                MIN(info->instructions_count * MAX_CU_PER_INSTRUCTION, MAX_CU_PER_TRANSACTION);
+        }
+        return max_fee + (info->change_unit_price->units * max_compute);
     }
-    return MIN(info->instructions_count * MAX_CU_PER_INSTRUCTION, MAX_CU_PER_TRANSACTION);
+    return max_fee;
 }
 
 static int print_compute_budget_max_fee(uint32_t max_fee, const PrintConfig* print_config) {
@@ -70,10 +78,9 @@ static int print_compute_budget_max_fee(uint32_t max_fee, const PrintConfig* pri
  * RequestHeapFrame and SetLoadedAccountsDataSizeLimit instruction kinds
  * are omitted on purpose as they currently do not display any data on the screen
  */
-int print_compute_budget(ComputeBudgetFeeInfo* info, const PrintConfig* print_config) {
+void print_compute_budget(ComputeBudgetFeeInfo* info, const PrintConfig* print_config) {
     uint32_t transaction_max_fee = calculate_max_fee(info);
-
-    return print_compute_budget_max_fee(transaction_max_fee, print_config);
+    print_compute_budget_max_fee(transaction_max_fee, print_config);
 }
 
 int parse_compute_budget_instructions(const Instruction* instruction,

@@ -57,4 +57,4 @@ int parse_compute_budget_instructions(const Instruction* instruction,
                                       const MessageHeader* header,
                                       ComputeBudgetInfo* info);
 
-int print_compute_budget(ComputeBudgetFeeInfo* info, const PrintConfig* print_config);
+void print_compute_budget(ComputeBudgetFeeInfo* info, const PrintConfig* print_config);
