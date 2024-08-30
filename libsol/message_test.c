@@ -190,7 +190,7 @@ void test_process_message_body_transfer_with_compute_budget_limit_and_unit_price
         0, 0, 0, 0, 0, 0, 0
     };
 
-    process_message_body_and_sanity_check(message, sizeof(message), 6);
+    process_message_body_and_sanity_check(message, sizeof(message), 5);
 
 }
 

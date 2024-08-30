@@ -5,6 +5,11 @@
 #include "sol/parser.h"
 #include "sol/print_config.h"
 
+// https://solana.com/docs/core/fees#compute-unit-limit
+#define MAX_CU_PER_INSTRUCTION     200000
+#define MAX_CU_PER_TRANSACTION     1400000
+#define FEE_LAMPORTS_PER_SIGNATURE 5000
+
 extern const Pubkey compute_budget_program_id;
 
 enum ComputeBudgetInstructionKind {
@@ -32,6 +37,7 @@ typedef struct ComputeBudgetSetLoadedAccountsDataSizeLimitInfo {
 
 typedef struct ComputeBudgetInfo {
     enum ComputeBudgetInstructionKind kind;
+    size_t signatures_count;
     union {
         ComputeBudgetRequestHeapFrameInfo request_heap_frame;
         ComputeBudgetChangeUnitLimitInfo change_unit_limit;
@@ -40,6 +46,15 @@ typedef struct ComputeBudgetInfo {
     };
 } ComputeBudgetInfo;
 
-int parse_compute_budget_instructions(const Instruction* instruction, ComputeBudgetInfo* info);
+typedef struct ComputeBudgetFeeInfo {
+    ComputeBudgetChangeUnitLimitInfo* change_unit_limit;
+    ComputeBudgetChangeUnitPriceInfo* change_unit_price;
+    size_t instructions_count;
+    size_t signatures_count;
+} ComputeBudgetFeeInfo;
 
-int print_compute_budget(ComputeBudgetInfo* info, const PrintConfig* print_config);
+int parse_compute_budget_instructions(const Instruction* instruction,
+                                      const MessageHeader* header,
+                                      ComputeBudgetInfo* info);
+
+void print_compute_budget(ComputeBudgetFeeInfo* info, const PrintConfig* print_config);
