@@ -68,7 +68,7 @@ static int print_compute_budget_max_fee(uint32_t max_fee, const PrintConfig* pri
     SummaryItem* item;
 
     item = transaction_summary_general_item();
-    summary_item_set_u64(item, "Max fees", max_fee);
+    summary_item_set_amount(item, "Max fees", max_fee);
 
     return 0;
 }
