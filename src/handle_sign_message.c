@@ -96,7 +96,8 @@ static bool check_swap_validity(const SummaryItemKind_t kinds[MAX_TRANSACTION_SU
     bool amount_ok = false;
     bool recipient_ok = false;
     if (num_summary_steps != 2 && num_summary_steps != 3) {
-        PRINTF("2 or 3 steps expected for transaction in swap context, not %u\n", num_summary_steps);
+        PRINTF("2 or 3 steps expected for transaction in swap context, not %u\n",
+               num_summary_steps);
         return false;
     }
     for (size_t i = 0; i < num_summary_steps; ++i) {
@@ -104,7 +105,7 @@ static bool check_swap_validity(const SummaryItemKind_t kinds[MAX_TRANSACTION_SU
         switch (kinds[i]) {
             case SummaryItemAmount:
                 if (strcmp(G_transaction_summary_title, "Max fees") == 0) {
-                    break; // Should we check the fees ?
+                    break;  // Should we check the fees ?
                 }
                 amount_ok =
                     check_swap_amount(G_transaction_summary_title, G_transaction_summary_text);
